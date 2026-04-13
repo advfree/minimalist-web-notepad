@@ -563,8 +563,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <p>设置分享链接的访问限制</p>
 <label>最大查看次数</label>
 <input type=\"number\" id=\"sv\" value=\"1\" min=\"1\" max=\"100\">
-<label>过期时间（小时，0=永不过期）</label>
-<input type=\"number\" id=\"se\" value=\"0\" min=\"0\" max=\"720\">
+<label>过期时间（小时，0=永不过期），默认24h</label>
+<input type=\"number\" id=\"se\" value=\"24\" min=\"0\" max=\"720\">
 <button onclick=\"createShare()\">生成分享链接</button>
 </div>
 <div class=\"ss\" id=\"sresult\" style=\"display:none\">
