@@ -249,7 +249,7 @@ if ($action === 'api_create' && $is_logged_in && $_SERVER['REQUEST_METHOD'] === 
         echo json_encode(['success' => false, 'error' => '无效的请求']);
         exit;
     }
-    $slug = substr(str_shuffle('234579abcdefghjkmnpqrstwxyz'), -5);
+    $slug = bin2hex(random_bytes(4));
     $stmt = $pdo->prepare("INSERT INTO notes (slug, content) VALUES (?, '')");
     $stmt->execute([$slug]);
     echo json_encode(['success' => true, 'slug' => $slug]);
@@ -861,7 +861,7 @@ th{background:var(--lb);font-size:11px;text-transform:uppercase;color:var(--sc)}
 
 // ===== 新建笔记 =====
 if ($action === 'new' && $is_logged_in) {
-    $slug = substr(str_shuffle('234579abcdefghjkmnpqrstwxyz'), -5);
+    $slug = bin2hex(random_bytes(4));
     $stmt = $pdo->prepare("INSERT INTO notes (slug, content) VALUES (?, '')");
     $stmt->execute([$slug]);
     header("Location: ?note=$slug");
