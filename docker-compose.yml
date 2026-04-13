@@ -1,6 +1,7 @@
 services:
   app:
-    build: .
+    # 使用 GitHub Container Registry 预构建镜像（无需本地编译）
+    image: ghcr.io/advfree/minimalist-web-notepad:latest
     container_name: minimalist-web-notepad
     restart: unless-stopped
     ports:
