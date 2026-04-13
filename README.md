@@ -39,7 +39,21 @@
 
 ## 快速开始
 
-### 1. 修改配置文件
+### 1. 下载代码
+
+```bash
+sudo -i
+mkdir -p /root/data/docker_data/mininotepad
+mkdir -p /root/data/docker_data/mininotepad/data
+chmod 777 data
+cd /root/data/docker_data/mininotepad
+git clone https://github.com/advfree/minimalist-web-notepad.git
+# 开启 dotglob 并执行移动
+shopt -s dotglob && mv -i /root/data/docker_data/mininotepad/minimalist-web-notepad/* /root/data/docker_data/mininotepad/ && shopt -u dotglob
+rmdir /root/data/docker_data/mininotepad/minimalist-web-notepad
+```
+
+### 2. 修改配置文件
 
 编辑 `config.yaml`，**必须修改默认密码**：
 
@@ -51,40 +65,16 @@ admin:
   password_hash: "$2y$10$..."
 ```
 
-### 2. 下载代码
+### 3. Docker 启动
 
 ```bash
-sudo -i
-cd /root/data/docker_data
-git clone https://github.com/advfree/minimalist-web-notepad.git
-cd minimalist-web-notepad
-mkdir -p data
-chmod 777 data
+docker compose up -d
+
+# 访问 http://localhost:8080
+# 使用 config.yaml 中配置的账号密码登录
 ```
 
-新建 `docker-compose.yml`（在 minimalist-web-notepad 目录下）：
-
-```yaml
-services:
-  app:
-    build: .
-    container_name: minimalist-web-notepad
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./data:/var/www/html/_data
-    environment:
-      - TZ=Asia/Shanghai
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-```
-
-**字段说明：**
+**docker-compose.yml 字段说明：**
 
 | 字段 | 说明 |
 |:---|:---|
@@ -96,18 +86,7 @@ services:
 | `environment` | 环境变量，`TZ=Asia/Shanghai` 为北京时间 |
 | `healthcheck` | 健康检查，curl 访问首页确认容器运行正常 |
 
-**启动命令：**
-
-```bash
-# 编辑 config.yaml 修改密码
-# 然后启动容器
-docker compose up -d
-
-# 访问 http://localhost:8080
-# 使用 config.yaml 中配置的账号密码登录
-```
-
-### 3. VPS 手动部署
+### 4. VPS 手动部署
 
 ```bash
 git clone https://github.com/advfree/minimalist-web-notepad.git
@@ -128,11 +107,10 @@ caddy run --config Caddyfile --adapter caddyfile
 minimalist-web-notepad/
 ├── index.php              # 主程序（单文件，PHP 8.2+）
 ├── config.yaml            # 用户配置文件（账号密码、安全设置）
+├── docker-compose.yml     # Docker Compose 配置
 ├── Caddyfile              # Caddy 反向代理配置（HTTP 端口 8080）
-├── _data/                 # 数据目录（SQLite 数据库，自动创建）
-│   └── notes.db          # SQLite 数据库文件（自动创建）
-│   └── .gitkeep
 ├── Dockerfile             # Docker 镜像配置（Caddy + PHP-FPM）
+├── data/                  # 数据目录（需手动创建，SQLite 数据库自动生成）
 ├── README.md
 └── LICENSE
 ```
