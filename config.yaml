@@ -1,0 +1,27 @@
+﻿# 极简笔记 - 用户配置文件
+# 请修改以下配置后重启服务
+
+# ===== 管理员账号密码 =====
+# 用户名（默认 admin）
+# 密码请使用 bcrypt 加密，可在线生成：https://bcrypt-generator.com/
+# 默认密码：admin123 （请务必修改！）
+admin:
+  username: admin
+  # bcrypt 加密后的密码
+  password_hash: "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"
+
+# ===== 安全设置 =====
+security:
+  # 会话超时时间（分钟）
+  session_timeout: 30
+  # 密码失败最大次数
+  max_failed_attempts: 5
+  # 锁定时间（分钟）
+  lockout_duration: 15
+
+# ===== 应用设置 =====
+app:
+  # 网站标题
+  site_title: "极简笔记"
+  # 笔记路径（相对于 Web 根目录）
+  notes_path: "_data"

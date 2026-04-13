@@ -1,0 +1,30 @@
+﻿# ============================================================
+# 极简笔记 - Docker Compose 配置
+# 使用 Caddy 自动 HTTPS + PHP-FPM
+#
+# 使用方法：
+#   1. 修改 config.yaml 中的账号密码
+#   2. docker-compose up -d
+#   3. 访问 http://localhost:8080
+# ============================================================
+
+services:
+  app:
+    build: .
+    container_name: minimalist-notepad
+    restart: unless-stopped
+    ports:
+      - "8080:8080"    # HTTP（由外部反向代理提供 HTTPS）
+    volumes:
+      # 持久化数据（SQLite 数据库和附件）
+      - ./data:/var/www/html/_data
+      # 挂载自定义 config.yaml（如有）
+      # - ./config.yaml:/var/www/html/config.yaml:ro
+    environment:
+      - TZ=Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

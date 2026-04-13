@@ -1,0 +1,48 @@
+# ============================================================
+# Caddy 配置文件
+# 极简笔记 - HTTP 反向代理 / PHP-FPM
+# 配合 frp 等反向代理工具实现 HTTPS
+# ============================================================
+
+{
+    # 全局设置
+    admin off
+    log {
+        output stdout
+    }
+    http_port 8080
+}
+
+# 本地端口
+:8080
+
+# ============================================================
+# 站点配置片段
+# ============================================================
+(default_site) {
+    root * /var/www/html
+    encode gzip
+
+    # PHP 请求转发给 FastCGI（PHP-FPM）
+    php_fastcgi localhost:9000
+
+    # 安全：禁止访问数据目录
+    @denied {
+        path /_data/*
+        path /config.yaml
+        path /*.sqlite
+        path /*.db
+    }
+    handle @denied {
+        respond 404
+    }
+
+    # 静态文件长期缓存
+    @static {
+        not {
+            path *.php
+        }
+    }
+    header @static Cache-Control "public, max-age=5184000"
+    try_files {path} {path}/ /index.php?{query}
+}
