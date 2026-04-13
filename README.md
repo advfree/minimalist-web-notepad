@@ -48,6 +48,8 @@ mkdir -p /root/data/docker_data/mininotepad/data
 chmod 777 data
 cd /root/data/docker_data/mininotepad
 git clone https://github.com/advfree/minimalist-web-notepad.git
+```
+```bash
 # 开启 dotglob 并执行移动
 shopt -s dotglob && mv -i /root/data/docker_data/mininotepad/minimalist-web-notepad/* /root/data/docker_data/mininotepad/ && shopt -u dotglob
 rmdir /root/data/docker_data/mininotepad/minimalist-web-notepad
