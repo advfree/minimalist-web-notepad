@@ -3,11 +3,12 @@
 # ============================================================
 FROM php:8.2-fpm-alpine
 
-# 安装必要的 PHP 扩展
+# 安装必要的 PHP 扩展和依赖
 RUN apk add --no-cache \
     curl \
     libzip \
     oniguruma \
+    sqlite-dev \
     && docker-php-ext-install \
         pdo \
         pdo_sqlite \
