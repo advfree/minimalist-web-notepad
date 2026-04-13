@@ -54,16 +54,52 @@ admin:
 ### 2. Docker 启动（推荐）
 
 ```bash
-git clone https://github.com/advfree/minimalist-web-notepad.git
-cd minimalist-web-notepad
-
-# 复制 docker-compose 模板
-cp docker-compose.sample.yml docker-compose.yml
-
-# 编辑 config.yaml 修改密码
-
-# 赋予数据目录权限并启动
+# 新建文件夹（可选）
+sudo -i
+mkdir -p /root/data/docker_data/mininotepad
+mkdir -p /root/data/docker_data/mininotepad/data
+cd /root/data/docker_data/mininotepad
 chmod 777 data
+```
+
+新建 `docker-compose.yml`：
+
+```yaml
+services:
+  app:
+    build: .
+    container_name: minimalist-web-notepad
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/var/www/html/_data
+    environment:
+      - TZ=Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+```
+
+**字段说明：**
+
+| 字段 | 说明 |
+|:---|:---|
+| `build` | Dockerfile 路径，`.` = 当前目录 |
+| `container_name` | 容器名，唯一标识，不可与其他容器重复 |
+| `restart` | 重启策略：`unless-stopped`（开机自启，推荐）/ `always`（始终重启）/ `no`（不自动重启） |
+| `ports` | `"宿主机端口:容器端口"`，左侧是本机端口，右侧是容器内端口。改左侧数字可避开端口冲突，如 `"8081:8080"` |
+| `volumes` | 数据持久化：左侧 `./data` 是本机目录（需自行 mkdir），右侧 `/var/www/html/_data` 是容器内数据目录（勿改） |
+| `environment` | 环境变量，`TZ=Asia/Shanghai` 为北京时间 |
+| `healthcheck` | 健康检查，curl 访问首页确认容器运行正常 |
+
+**启动命令：**
+
+```bash
+# 编辑 config.yaml 修改密码后启动
 docker compose up -d
 
 # 访问 http://localhost:8080
@@ -96,7 +132,6 @@ minimalist-web-notepad/
 │   └── notes.db          # SQLite 数据库文件（自动创建）
 │   └── .gitkeep
 ├── Dockerfile             # Docker 镜像配置（Caddy + PHP-FPM）
-├── docker-compose.sample.yml  # Docker Compose 模板（带注释说明）
 ├── README.md
 └── LICENSE
 ```
