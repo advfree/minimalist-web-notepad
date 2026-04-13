@@ -151,9 +151,22 @@ function generate_csrf() {
 
 // ===== 会话管理 =====
 
+// Cookie 安全属性
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'Strict'
+]);
 session_start();
 
-$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+// 获取真实 IP（支持代理）
+$ip = $_SERVER['HTTP_X_FORWARDED_FOR'] 
+    ?? $_SERVER['HTTP_X_REAL_IP'] 
+    ?? $_SERVER['REMOTE_ADDR'] 
+    ?? '0.0.0.0';
+$ip = filter_var(explode(',', $ip)[0], FILTER_VALIDATE_IP) ?: '0.0.0.0';
 $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
 // 清理过期会话
@@ -200,7 +213,7 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt = $pdo->prepare("SELECT id, username, password_hash FROM users WHERE username = ?");
     $stmt->execute([$username]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -236,7 +249,7 @@ if ($action === 'logout') {
 // 获取笔记列表
 if ($action === 'api_notes' && $is_logged_in) {
     header('Content-Type: application/json');
-    $stmt = $pdo->query("SELECT * FROM notes ORDER BY updated_at DESC");
+    $stmt = $pdo->query("SELECT id, slug, content, created_at, updated_at FROM notes ORDER BY updated_at DESC");
     $notes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode($notes);
     exit;
@@ -351,7 +364,7 @@ if ($action === 'api_delete_share' && $is_logged_in && $_SERVER['REQUEST_METHOD'
 // 获取分享链接列表
 if ($action === 'api_shares' && $is_logged_in) {
     header('Content-Type: application/json');
-    $stmt = $pdo->query("SELECT s.*, n.slug, n.content FROM shared_notes s JOIN notes n ON s.note_id = n.id ORDER BY s.created_at DESC");
+    $stmt = $pdo->query("SELECT s.id, s.share_token, s.note_id, s.max_views, s.view_count, s.expires_at, s.created_at, n.slug, n.content FROM shared_notes s JOIN notes n ON s.note_id = n.id ORDER BY s.created_at DESC");
     $shares = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode($shares);
     exit;
@@ -360,7 +373,7 @@ if ($action === 'api_shares' && $is_logged_in) {
 // 获取访问日志
 if ($action === 'api_logs' && $is_logged_in) {
     header('Content-Type: application/json');
-    $stmt = $pdo->query("SELECT * FROM access_logs ORDER BY accessed_at DESC LIMIT 100");
+    $stmt = $pdo->query("SELECT id, share_token, ip_address, user_agent, accessed_at FROM access_logs ORDER BY accessed_at DESC LIMIT 100");
     $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode($logs);
     exit;
@@ -375,7 +388,7 @@ if (!empty($_GET['share'])) {
     $pdo->beginTransaction();
     
     // 获取分享信息（加锁）
-    $stmt = $pdo->prepare("SELECT * FROM shared_notes WHERE share_token = ?");
+    $stmt = $pdo->prepare("SELECT id, note_id, max_views, view_count, expires_at FROM shared_notes WHERE share_token = ?");
     $stmt->execute([$share_token]);
     $share = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -402,7 +415,7 @@ if (!empty($_GET['share'])) {
     $stmt->execute([$share_token, mask_ip($ip), $user_agent]);
 
     // 获取笔记内容
-    $stmt = $pdo->prepare("SELECT * FROM notes WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id, slug, content FROM notes WHERE id = ?");
     $stmt->execute([$share['note_id']]);
     $note = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -468,7 +481,7 @@ if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
 
 if (!empty($_GET['note'])) {
     $slug = $_GET['note'];
-    $stmt = $pdo->prepare("SELECT * FROM notes WHERE slug = ?");
+    $stmt = $pdo->prepare("SELECT id, slug, content, created_at, updated_at FROM notes WHERE slug = ?");
     $stmt->execute([$slug]);
     $note = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -686,7 +699,7 @@ updateLines();updateStats();
 
 if ($is_logged_in) {
     $csrf_token = generate_csrf();
-    $stmt = $pdo->query("SELECT * FROM notes ORDER BY updated_at DESC");
+    $stmt = $pdo->query("SELECT id, slug, content, created_at, updated_at FROM notes ORDER BY updated_at DESC");
     $notes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $site_title = sanitize($app['site_title'] ?? '极简笔记');
 
@@ -770,7 +783,7 @@ const t=localStorage.getItem('theme');if(t==='dark'||(t!=='light'&&window.matchM
 // ===== 分享管理 =====
 if ($action === 'shares' && $is_logged_in) {
     $csrf_token = generate_csrf();
-    $stmt = $pdo->query("SELECT s.*, n.slug, n.content FROM shared_notes s JOIN notes n ON s.note_id = n.id ORDER BY s.created_at DESC");
+    $stmt = $pdo->query("SELECT s.id, s.share_token, s.note_id, s.max_views, s.view_count, s.expires_at, s.created_at, n.slug, n.content FROM shared_notes s JOIN notes n ON s.note_id = n.id ORDER BY s.created_at DESC");
     $shares = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $shares_html = '';
@@ -827,7 +840,7 @@ function cp(t){navigator.clipboard.writeText(BASE+'?share='+t).then(()=>alert('C
 // ===== 访问日志 =====
 if ($action === 'logs' && $is_logged_in) {
     $csrf_token = generate_csrf();
-    $stmt = $pdo->query("SELECT * FROM access_logs ORDER BY accessed_at DESC LIMIT 100");
+    $stmt = $pdo->query("SELECT id, share_token, ip_address, user_agent, accessed_at FROM access_logs ORDER BY accessed_at DESC LIMIT 100");
     $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $logs_html = '';
