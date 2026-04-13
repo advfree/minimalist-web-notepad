@@ -597,7 +597,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <button onclick=\"showNotes()\" style=\"padding:8px 12px;border:1px solid var(--bd);border-radius:6px;background:var(--tbg);color:var(--tc);cursor:pointer\">刷新</button>
 </div>
 <div id=\"nlist\"></div>
-<div class=\"modal-btns\"><button onclick=\"closeLMo()\">关闭</button></div>
+<div class=\"modal-btns\"><button onclick=\"this.closest('.mo').classList.remove('on')\"
+ style=\"padding:8px 16px;border:1px solid var(--bd);border-radius:6px;background:var(--tb);color:var(--tc);cursor:pointer\">关闭</button></div>
 </div>
 </div>
 

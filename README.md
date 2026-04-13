@@ -1,4 +1,4 @@
-# Minimalist Web Notepad - 增强版
+# Mininotepad - 极简笔记
 
 基于 [pereorga/minimalist-web-notepad](https://github.com/pereorga/minimalist-web-notepad) 改造，增加了账号登录、SQLite 数据库、一次性分享链接、访问日志等功能，支持 Docker 一键部署。
 
@@ -10,7 +10,7 @@
 <img src="https://img.shields.io/badge/License-Apache%202.0-green?style=flat-square" alt="License">
 </p>
 
---
+---
 
 ## 功能特性
 
@@ -80,32 +80,18 @@ caddy run --config Caddyfile --adapter caddyfile
 
 ---
 
-## 本地预览（无需安装 Docker/PHP）
-
-如果只想先看看效果，直接打开 `notepad-preview.html` 即可在浏览器中体验全部编辑功能（数据保存在 localStorage，不联网）。
-
-每次推送新代码后，重新生成预览：
-
-```powershell
-.\generate-preview.ps1
-```
-
----
-
 ## 目录结构
 
 ```
-minimalist-web-notepad/
-├── index.php               # 主程序（单文件，PHP 8.2+）
-├── config.yaml             # 用户配置文件（账号密码、安全设置）
-├── Caddyfile               # Caddy 反向代理配置（HTTP 端口 8080）
-├── notepad-preview.html    # 本地预览版（纯 HTML + JS，调试用）
-├── generate-preview.ps1    # 预览版生成脚本
-├── _data/                  # 数据目录（SQLite 数据库，自动创建）
-│   └── notes.db            # SQLite 数据库文件（自动创建）
+mininotepad/
+├── index.php           # 主程序（单文件，PHP 8.2+）
+├── config.yaml         # 用户配置文件（账号密码、安全设置）
+├── Caddyfile           # Caddy 反向代理配置（HTTP 端口 8080）
+├── _data/              # 数据目录（SQLite 数据库，自动创建）
+│   └── notes.db        # SQLite 数据库文件（自动创建）
 │   └── .gitkeep
-├── Dockerfile              # Docker 镜像配置（Caddy + PHP-FPM）
-├── docker-compose.yml      # Docker Compose 配置
+├── Dockerfile          # Docker 镜像配置（Caddy + PHP-FPM）
+├── docker-compose.yml  # Docker Compose 模板（带注释说明）
 ├── README.md
 └── LICENSE
 ```
