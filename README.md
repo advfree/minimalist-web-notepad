@@ -37,43 +37,42 @@
 
 ---
 
-## docker-compose 快速开始
+## Docker 快速部署（推荐）
 
-### 1. 下载代码
+使用 GitHub Container Registry 预构建镜像，**无需本地编译**。
+
+### 1. 新建文件夹
 
 ```bash
 sudo -i
 mkdir -p /root/data/docker_data/mininotepad
-mkdir -p /root/data/docker_data/mininotepad/data
 cd /root/data/docker_data/mininotepad
-git clone https://github.com/advfree/minimalist-web-notepad.git
 ```
+
+### 2. 下载配置文件
+
 ```bash
-chmod 777 data
-# 开启 dotglob 并执行移动
-shopt -s dotglob && mv -i /root/data/docker_data/mininotepad/minimalist-web-notepad/* /root/data/docker_data/mininotepad/ && shopt -u dotglob
-rmdir /root/data/docker_data/mininotepad/minimalist-web-notepad
+# 下载 docker-compose.yml
+curl -O https://raw.githubusercontent.com/advfree/minimalist-web-notepad/master/docker-compose.yml
+
+# 下载 config.yaml
+curl -o config.yaml https://raw.githubusercontent.com/advfree/minimalist-web-notepad/master/config.yaml
 ```
 
-### 2. 修改配置文件
+### 3. 修改配置文件
 
-编辑 `config.yaml`，**必须修改默认密码**：
+**必须修改默认密码**：
 
-```yaml
+```bash
 vim config.yaml
 ```
 
-```yaml
-admin:
-  username: admin
-  # 生成你自己的 bcrypt 密码：https://bcrypt-generator.com/
-  # 默认密码：admin123（请务必修改！）
-  password_hash: "$2y$10$..."
-```
+生成你自己的 bcrypt 密码：https://bcrypt-generator.com/
 
-### 3. Docker 启动
+### 4. 启动
 
 ```bash
+mkdir -p data && chmod 777 data
 docker compose up -d
 
 # 访问 http://localhost:8080
@@ -84,7 +83,7 @@ docker compose up -d
 
 | 字段 | 说明 |
 |:---|:---|
-| `build` | Dockerfile 路径，`.` = 当前目录 |
+| `image` | 使用 GHCR 预构建镜像，无需本地编译 |
 | `container_name` | 容器名，唯一标识，不可与其他容器重复 |
 | `restart` | 重启策略：`unless-stopped`（开机自启，推荐）/ `always`（始终重启）/ `no`（不自动重启） |
 | `ports` | `"宿主机端口:容器端口"`，左侧是本机端口，右侧是容器内端口。改左侧数字可避开端口冲突，如 `"8081:8080"` |
@@ -92,17 +91,18 @@ docker compose up -d
 | `environment` | 环境变量，`TZ=Asia/Shanghai` 为北京时间 |
 | `healthcheck` | 健康检查，curl 访问首页确认容器运行正常 |
 
-### 4. VPS 手动部署
+---
+
+## 手动编译部署
+
+如果你想自己编译 Docker 镜像：
 
 ```bash
 git clone https://github.com/advfree/minimalist-web-notepad.git
 cd minimalist-web-notepad
-
-# 赋予写权限
-chmod 777 _data
-
-# 使用 Caddy 反向代理（参考 Caddyfile 配置）
-caddy run --config Caddyfile --adapter caddyfile
+mkdir data && chmod 777 data
+vim config.yaml  # 修改密码
+docker compose up -d --build
 ```
 
 ---
