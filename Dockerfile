@@ -1,22 +1,22 @@
 ﻿# Minimalist Notepad - Caddy + PHP-FPM 镜像
-# Alpine Linux + Caddy HTTP + PHP 8.2
+# Debian + Caddy HTTP + PHP 8.2
 # ============================================================
-FROM php:8.2-fpm-alpine
+FROM php:8.2-fpm
 
 # 安装必要的 PHP 扩展和依赖
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    libzip \
-    oniguruma \
-    sqlite-dev \
+    libzip-dev \
+    libonig-dev \
+    libsqlite3-dev \
+    caddy \
+    && rm -rf /var/lib/apt/lists/* \
+    && docker-php-ext-configure pdo_sqlite \
     && docker-php-ext-install \
         pdo \
         pdo_sqlite \
         zip \
         mbstring
-
-# 安装 Caddy（Alpine 包管理器，极简）
-RUN apk add --no-cache caddy
 
 WORKDIR /var/www/html
 
@@ -27,7 +27,8 @@ COPY . .
 RUN mkdir -p /var/www/html/_data && chmod 777 /var/www/html/_data
 
 # 使用 supervisord 管理 PHP-FPM 和 Caddy 双进程
-RUN apk add --no-cache supervisor
+RUN apt-get update && apt-get install -y --no-install-recommends supervisor \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /etc/supervisor.d && cat > /etc/supervisord.conf << 'EOF'
 [supervisord]
