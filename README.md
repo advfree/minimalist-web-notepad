@@ -51,18 +51,18 @@ admin:
   password_hash: "$2y$10$..."
 ```
 
-### 2. Docker 启动（推荐）
+### 2. 下载代码
 
 ```bash
-# 新建文件夹（可选）
 sudo -i
-mkdir -p /root/data/docker_data/mininotepad
-mkdir -p /root/data/docker_data/mininotepad/data
-cd /root/data/docker_data/mininotepad
+cd /root/data/docker_data
+git clone https://github.com/advfree/minimalist-web-notepad.git
+cd minimalist-web-notepad
+mkdir -p data
 chmod 777 data
 ```
 
-新建 `docker-compose.yml`：
+新建 `docker-compose.yml`（在 minimalist-web-notepad 目录下）：
 
 ```yaml
 services:
@@ -99,7 +99,8 @@ services:
 **启动命令：**
 
 ```bash
-# 编辑 config.yaml 修改密码后启动
+# 编辑 config.yaml 修改密码
+# 然后启动容器
 docker compose up -d
 
 # 访问 http://localhost:8080
