@@ -15,7 +15,7 @@
 ## 功能特性
 
 ### 笔记管理
-- **Markdown 实时预览** - 渲染标题、列表、代码块、表格、LaTeX 数学公式
+- **Markdown 编辑器** - 支持标题、列表、代码块、表格
 - **暗色模式** - 自动 / 亮色 / 暗色三种模式
 - **行号显示** - 可开关的编辑器行号
 - **字数统计** - 实时显示字符数、行数
@@ -54,12 +54,17 @@ admin:
 ### 2. Docker 启动（推荐）
 
 ```bash
-git clone https://github.com/advfree/minimalist-web-notepad.git
-cd minimalist-web-notepad
+git clone https://github.com/advfree/mininotepad.git
+cd mininotepad
+
+# 复制 docker-compose 模板
+cp docker-compose.sample.yml docker-compose.yml
 
 # 编辑 config.yaml 修改密码
-# 然后启动
-docker-compose up -d
+
+# 赋予数据目录权限并启动
+chmod 777 data
+docker compose up -d
 
 # 访问 http://localhost:8080
 # 使用 config.yaml 中配置的账号密码登录
@@ -68,8 +73,8 @@ docker-compose up -d
 ### 3. VPS 手动部署
 
 ```bash
-git clone https://github.com/advfree/minimalist-web-notepad.git
-cd minimalist-web-notepad
+git clone https://github.com/advfree/mininotepad.git
+cd mininotepad
 
 # 赋予写权限
 chmod 777 _data
@@ -84,14 +89,14 @@ caddy run --config Caddyfile --adapter caddyfile
 
 ```
 mininotepad/
-├── index.php           # 主程序（单文件，PHP 8.2+）
-├── config.yaml         # 用户配置文件（账号密码、安全设置）
-├── Caddyfile           # Caddy 反向代理配置（HTTP 端口 8080）
-├── _data/              # 数据目录（SQLite 数据库，自动创建）
-│   └── notes.db        # SQLite 数据库文件（自动创建）
+├── index.php              # 主程序（单文件，PHP 8.2+）
+├── config.yaml            # 用户配置文件（账号密码、安全设置）
+├── Caddyfile              # Caddy 反向代理配置（HTTP 端口 8080）
+├── _data/                 # 数据目录（SQLite 数据库，自动创建）
+│   └── notes.db          # SQLite 数据库文件（自动创建）
 │   └── .gitkeep
-├── Dockerfile          # Docker 镜像配置（Caddy + PHP-FPM）
-├── docker-compose.yml  # Docker Compose 模板（带注释说明）
+├── Dockerfile             # Docker 镜像配置（Caddy + PHP-FPM）
+├── docker-compose.sample.yml  # Docker Compose 模板（带注释说明）
 ├── README.md
 └── LICENSE
 ```

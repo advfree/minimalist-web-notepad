@@ -1,7 +1,7 @@
 <?php
 /**
  * 极简笔记 - 增强版
- * 基于 minimalist-web-notepad 改造
+ * 基于 pereorga/minimalist-web-notepad 改造
  * 支持：SQLite 数据库、账号登录、一次性分享链接、访问日志
  */
 
@@ -385,7 +385,6 @@ if (!empty($_GET['share'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
 <title><?php echo $site_title; ?> - 分享内容</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <style>
 :root { --bg: #f5f5f5; --text-bg: #fff; --text-color: #333; --border: #ddd; --accent: #4a90d9; --line-bg: #f0f0f0; }
 @media (prefers-color-scheme: dark) { :root { --bg: #1a1a2e; --text-bg: #16213e; --text-color: #e0e0e0; --border: #2a3a5a; --accent: #64b5f6; --line-bg: #1a2744; } }
@@ -456,7 +455,6 @@ if (!empty($_GET['note'])) {
 <title>{$note['slug']} - {$site_title}</title>
 <link rel=\"icon\" href=\"favicon.ico\" sizes=\"any\">
 <link rel=\"icon\" href=\"favicon.svg\" type=\"image/svg+xml\">
-<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css\">
 <style>
 :root{--bg:#f5f5f5;--tbg:#fff;--tc:#333;--bd:#ddd;--ac:#4a90d9;--ah:#357abd;--tb:#fafafa;--sc:#666;--lb:#f0f0f0;--lc:#999;--pb:#fff;--sb:#f8f9fa;--ok:#4caf50;--wr:#ff9800}
 [data-theme=\"dark\"]{--bg:#1a1a2e;--tbg:#16213e;--tc:#e0e0e0;--bd:#2a3a5a;--ac:#64b5f6;--ah:#42a5f5;--tb:#1a1a2e;--sc:#a0a0a0;--lb:#16213e;--lc:#5a7a9a;--pb:#16213e;--sb:#1a1a2e}
@@ -473,20 +471,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ew{flex:1;display:flex;overflow:hidden;position:relative}
 #lines{width:50px;padding:20px 10px;text-align:right;background:var(--lb);color:var(--lc);font-family:'SF Mono',Consolas,monospace;font-size:14px;line-height:1.6;overflow:hidden;user-select:none;border-right:1px solid var(--bd);flex-shrink:0}
 #editor{flex:1;padding:20px;border:none;outline:none;background:var(--tbg);color:var(--tc);font-family:'SF Mono',Consolas,monospace;font-size:14px;line-height:1.6;resize:none;overflow-y:auto;tab-size:4}
-#preview{flex:1;padding:20px 40px;background:var(--pb);overflow-y:auto;border-left:1px solid var(--bd);display:none}
-#preview h1,#preview h2{border-bottom:1px solid var(--bd);padding-bottom:.3em;margin-top:1.5em;margin-bottom:.5em}
-#preview h1{font-size:2em}#preview h2{font-size:1.5em}
-#preview h3{font-size:1.25em;margin-top:1.5em;margin-bottom:.5em}
-#preview p{margin:1em 0;line-height:1.7}
-#preview code{background:var(--lb);padding:2px 6px;border-radius:4px}
-#preview pre{background:var(--lb);padding:16px;border-radius:8px;overflow-x:auto}
-#preview blockquote{border-left:4px solid var(--ac);margin:1em 0;padding:.5em 1em;background:var(--lb);border-radius:0 8px 8px 0}
-#preview ul,#preview ol{margin:1em 0;padding-left:2em}
-#preview table{border-collapse:collapse;width:100%;margin:1em 0}
-#preview th,#preview td{border:1px solid var(--bd);padding:8px}
-#preview th{background:var(--lb)}
-#preview img{max-width:100%;border-radius:8px}
-.katex-display{margin:1em 0;overflow-x:auto}
 .sidebar{width:320px;background:var(--sb);border-left:1px solid var(--bd);display:none;flex-direction:column}
 .sidebar.on{display:flex}
 .sh{padding:12px 16px;border-bottom:1px solid var(--bd);font-weight:600;font-size:14px}
@@ -514,7 +498,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .login-box button:hover{background:var(--ah)}
 .login-box .err{color:#e53935;font-size:13px;margin-top:8px;text-align:center}
 .login-logo{font-size:48px;text-align:center;margin-bottom:16px}
-@media print{.tb,.sb,.sidebar,#lines{display:none!important}.main{display:block}#editor{display:none}#preview{display:block!important;border:none;padding:0}body{background:#fff;color:#000}}
+@media print{.tb,.sb,.sidebar,#lines{display:none!important}.main{display:block}#editor{display:none}body{background:#fff;color:#000}}
 @media(max-width:768px){.sidebar{position:fixed;right:0;top:0;bottom:0;z-index:100;box-shadow:-2px 0 10px rgba(0,0,0,.1)}.tb{padding:6px 8px}.tb-btn{padding:5px 8px;font-size:12px}.sb{width:100%;justify-content:space-between;margin-left:0;padding-top:4px}}
 </style>
 </head>
@@ -535,7 +519,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class=\"tb\">
 <button class=\"tb-btn\" id=\"bh\" title=\"笔记列表\">📋 列表</button>
 <button class=\"tb-btn\" id=\"bt\" title=\"主题\"><span id=\"ti\">🌙</span></button>
-<button class=\"tb-btn\" id=\"bp\" title=\"预览\">👁️ 预览</button>
 <button class=\"tb-btn on\" id=\"bl\" title=\"行号\">#</button>
 <div class=\"sep\"></div>
 <button class=\"tb-btn\" id=\"bs\" title=\"分享\">🔗</button>
@@ -555,7 +538,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class=\"ew\">
 <div id=\"lines\">1</div>
 <textarea id=\"editor\" spellcheck=\"false\" placeholder=\"开始书写...\n\n支持 Markdown 语法\">" . sanitize($note['content']) . "</textarea>
-<div id=\"preview\"></div>
 </div>
 <div class=\"sidebar\" id=\"sidebar\">
 <div class=\"sh\">🔗 分享设置</div>
@@ -597,7 +579,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <button onclick=\"showNotes()\" style=\"padding:8px 12px;border:1px solid var(--bd);border-radius:6px;background:var(--tbg);color:var(--tc);cursor:pointer\">刷新</button>
 </div>
 <div id=\"nlist\"></div>
-<div class=\"modal-btns\"><button onclick=\"this.closest('.mo').classList.remove('on')\"
+<div class=\"modal-btns\"><button onclick="closeLMo()"
  style=\"padding:8px 16px;border:1px solid var(--bd);border-radius:6px;background:var(--tb);color:var(--tc);cursor:pointer\">关闭</button></div>
 </div>
 </div>
@@ -605,8 +587,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script src=\"https://cdn.jsdelivr.net/npm/marked/marked.min.js\"><\/script>
 <script>
 const SLUG='{$note['slug']}',CSRF='{$csrf_token}',LOGIN={$is_logged_in?'true':'false'},BASE=location.origin+location.pathname.split('?')[0];
-let C='',R=document.getElementById('editor').value,PV=false,PL=true,SV=false,LT=null,SSO=false;
-const ed=document.getElementById('editor'),pr=document.getElementById('preview'),ln=document.getElementById('lines'),sst=document.getElementById('ss'),stt=document.getElementById('st');
+let C='',R=document.getElementById('editor').value,PL=true,SV=false,LT=null,SSO=false;
+const ed=document.getElementById('editor'),ln=document.getElementById('lines'),sst=document.getElementById('ss'),stt=document.getElementById('st');
 
 if(LOGIN){document.getElementById('login-screen').classList.remove('on');C=ed.value;loop();}else{document.getElementById('login-screen').classList.add('on');}
 
@@ -630,7 +612,6 @@ if(localStorage.getItem('showLines')==='false')toggleLines();
 
 function updateLines(){const n=ed.value.split('\\n').length;ln.textContent=Array.from({length:n},(_,i)=>i+1).join('\\n');ln.scrollTop=ed.scrollTop;}
 
-function togglePreview(){PV=!PV;if(PV){marked.setOptions({breaks:true,gfm:true});let t=ed.value;t=t.replace(/\\$([^\\$]+)\\$/g,(m,f)=>{try{return katex.renderToString(f,{throwOnError:false,displayMode:false})}catch{return m}});t=t.replace(/\\$\\$([^\\$]+)\\$\\$/g,(m,f)=>{try{return'<div class=katex-display>'+katex.renderToString(f,{throwOnError:false,displayMode:true})+'</div>'}catch{return m}});pr.innerHTML=marked.parse(t);ed.style.display='none';pr.style.display='block';document.getElementById('bp').classList.add('on');}else{ed.style.display='block';pr.style.display='none';document.getElementById('bp').classList.remove('on');}}
 
 function updateStats(){const t=ed.value;document.getElementById('wc').textContent=t.length+' 字';document.getElementById('lc').textContent=t.split('\\n').length+' 行';}
 
@@ -654,7 +635,6 @@ function closeMo(){document.getElementById('mo').classList.remove('on');}
 function exportF(fmt){const b=new Blob([ed.value],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=SLUG+(fmt==='md'?'.md':'.txt');a.click();}
 
 document.getElementById('bt').onclick=toggleTheme;
-document.getElementById('bp').onclick=togglePreview;
 document.getElementById('bl').onclick=toggleLines;
 document.getElementById('bs').onclick=toggleShare;
 document.getElementById('bh').onclick=showNotes;
@@ -662,7 +642,7 @@ document.getElementById('bn').onclick=createNote;
 document.getElementById('bd').onclick=delNote;
 document.getElementById('et').onclick=()=>exportF('txt');
 document.getElementById('em').onclick=()=>exportF('md');
-ed.oninput=function(){updateLines();updateStats();if(PV)togglePreview(),togglePreview();};
+ed.oninput=function(){updateLines();updateStats();;};
 ed.onscroll=function(){ln.scrollTop=ed.scrollTop;};
 ed.onkeydown=function(e){if(e.key==='Tab'){e.preventDefault();const s=ed.selectionStart,en=ed.selectionEnd;ed.value=ed.value.substring(0,s)+'    '+ed.value.substring(en);ed.selectionStart=ed.selectionEnd=s+4;updateLines();}};
 updateLines();updateStats();
