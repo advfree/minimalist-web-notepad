@@ -1,4 +1,4 @@
-# Mininotepad - 极简笔记
+# Minimalist Web Notepad
 
 基于 [pereorga/minimalist-web-notepad](https://github.com/pereorga/minimalist-web-notepad) 改造，增加了账号登录、SQLite 数据库、一次性分享链接、访问日志等功能，支持 Docker 一键部署。
 
@@ -54,8 +54,8 @@ admin:
 ### 2. Docker 启动（推荐）
 
 ```bash
-git clone https://github.com/advfree/mininotepad.git
-cd mininotepad
+git clone https://github.com/advfree/minimalist-web-notepad.git
+cd minimalist-web-notepad
 
 # 复制 docker-compose 模板
 cp docker-compose.sample.yml docker-compose.yml
@@ -73,8 +73,8 @@ docker compose up -d
 ### 3. VPS 手动部署
 
 ```bash
-git clone https://github.com/advfree/mininotepad.git
-cd mininotepad
+git clone https://github.com/advfree/minimalist-web-notepad.git
+cd minimalist-web-notepad
 
 # 赋予写权限
 chmod 777 _data
@@ -88,7 +88,7 @@ caddy run --config Caddyfile --adapter caddyfile
 ## 目录结构
 
 ```
-mininotepad/
+minimalist-web-notepad/
 ├── index.php              # 主程序（单文件，PHP 8.2+）
 ├── config.yaml            # 用户配置文件（账号密码、安全设置）
 ├── Caddyfile              # Caddy 反向代理配置（HTTP 端口 8080）

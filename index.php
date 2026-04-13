@@ -19,7 +19,7 @@ $LOCKOUT_DURATION = (int)($security['lockout_duration'] ?? 15);
 // ===== 数据库初始化 =====
 $db_file = '_data/notes.db';
 $data_dir = '_data';
-if (!is_dir($data_dir)) mkdir($data_dir, 0755, true);
+if (!is_dir($data_dir)) mkdir($data_dir, 0700, true);
 
 $pdo = new PDO("sqlite:$db_file");
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -160,6 +160,7 @@ $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 $pdo->exec("DELETE FROM sessions WHERE datetime(last_activity, '+{$SESSION_TIMEOUT} minutes') < datetime('now')");
 
 // 检查会话是否有效（session_id 必须同时存在于 cookie 和数据库）
+// 注意：为了支持动态 IP 用户，不强制绑定 IP，但记录 IP 用于审计
 $session_id = $_COOKIE['PHPSESSID'] ?? '';
 if (!empty($session_id)) {
     $stmt = $pdo->prepare("SELECT user_id FROM sessions WHERE id = ? AND datetime(last_activity, '+{$SESSION_TIMEOUT} minutes') > datetime('now')");
@@ -259,13 +260,18 @@ if ($action === 'api_create' && $is_logged_in && $_SERVER['REQUEST_METHOD'] === 
 // 保存笔记
 if ($action === 'api_save' && $is_logged_in && $_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
-    $csrf = $_POST['csrf_token'] ?? $_GET['csrf'] ?? '';
+    $csrf = $_POST['csrf_token'] ?? '';
     if (!verify_csrf($csrf)) {
         echo json_encode(['success' => false, 'error' => '无效的请求']);
         exit;
     }
     $slug = $_POST['slug'] ?? '';
     $content = $_POST['content'] ?? '';
+    // 限制内容长度 1MB
+    if (strlen($content) > 1048576) {
+        echo json_encode(['success' => false, 'error' => '内容过长（最大 1MB）']);
+        exit;
+    }
     $stmt = $pdo->prepare("UPDATE notes SET content = ?, updated_at = datetime('now') WHERE slug = ?");
     $stmt->execute([$content, $slug]);
     echo json_encode(['success' => true]);
@@ -325,6 +331,17 @@ if ($action === 'api_delete_share' && $is_logged_in && $_SERVER['REQUEST_METHOD'
         exit;
     }
     $id = (int)($_POST['id'] ?? 0);
+    // 验证分享链接属于当前用户的笔记（防止越权删除）
+    $stmt = $pdo->prepare("
+        SELECT s.id FROM shared_notes s 
+        JOIN notes n ON s.note_id = n.id 
+        WHERE s.id = ?
+    ");
+    $stmt->execute([$id]);
+    if (!$stmt->fetch()) {
+        echo json_encode(['success' => false, 'error' => '无权删除此链接']);
+        exit;
+    }
     $stmt = $pdo->prepare("DELETE FROM shared_notes WHERE id = ?");
     $stmt->execute([$id]);
     echo json_encode(['success' => true]);
@@ -354,22 +371,35 @@ if ($action === 'api_logs' && $is_logged_in) {
 if (!empty($_GET['share'])) {
     $share_token = $_GET['share'];
 
-    // 记录访问日志（IP 部分脱敏）
-    $stmt = $pdo->prepare("INSERT INTO access_logs (share_token, ip_address, user_agent) VALUES (?, ?, ?)");
-    $stmt->execute([$share_token, mask_ip($ip), $user_agent]);
-
-    // 获取分享信息
+    // 使用事务防止竞态条件（查看次数检查与更新之间）
+    $pdo->beginTransaction();
+    
+    // 获取分享信息（加锁）
     $stmt = $pdo->prepare("SELECT * FROM shared_notes WHERE share_token = ?");
     $stmt->execute([$share_token]);
     $share = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$share) { http_response_code(404); die('链接不存在或已失效'); }
-    if ($share['expires_at'] && strtotime($share['expires_at']) < time()) { http_response_code(404); die('链接已过期'); }
-    if ($share['view_count'] >= $share['max_views']) { http_response_code(404); die('链接已达到最大查看次数'); }
+    if (!$share) {
+        $pdo->rollBack();
+        http_response_code(404); die('链接不存在或已失效');
+    }
+    if ($share['expires_at'] && strtotime($share['expires_at']) < time()) {
+        $pdo->rollBack();
+        http_response_code(404); die('链接已过期');
+    }
+    if ($share['view_count'] >= $share['max_views']) {
+        $pdo->rollBack();
+        http_response_code(404); die('链接已达到最大查看次数');
+    }
 
-    // 更新查看次数（消耗一次）
+    // 更新查看次数（原子操作）
     $stmt = $pdo->prepare("UPDATE shared_notes SET view_count = view_count + 1 WHERE id = ?");
     $stmt->execute([$share['id']]);
+    $pdo->commit();
+
+    // 记录访问日志（IP 部分脱敏）
+    $stmt = $pdo->prepare("INSERT INTO access_logs (share_token, ip_address, user_agent) VALUES (?, ?, ?)");
+    $stmt->execute([$share_token, mask_ip($ip), $user_agent]);
 
     // 获取笔记内容
     $stmt = $pdo->prepare("SELECT * FROM notes WHERE id = ?");

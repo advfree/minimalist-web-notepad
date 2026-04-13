@@ -11,7 +11,7 @@
 services:
   app:
     build: .
-    container_name: mininotepad
+    container_name: minimalist-web-notepad
     restart: unless-stopped
     ports:
       - "8080:8080"
