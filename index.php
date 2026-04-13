@@ -682,7 +682,7 @@ if ($is_logged_in) {
 
     $notes_html = '';
     foreach ($notes as $n) {
-        $preview = $n['content'] ? mb_substr($n['content'], 0, 50) : '<em style="opacity:0.5">空笔记</em>';
+        $preview = $n['content'] ? mb_substr(sanitize($n['content']), 0, 50) : '<em style="opacity:0.5">空笔记</em>';
         $updated = date('Y-m-d H:i', strtotime($n['updated_at']));
         $notes_html .= "<tr><td><a href=\"?note={$n['slug']}\" class=\"nl\">{$n['slug']}</a></td><td>{$preview}</td><td style=\"font-size:12px;color:var(--sc)\">{$updated}</td></tr>";
     }
@@ -765,7 +765,7 @@ if ($action === 'shares' && $is_logged_in) {
 
     $shares_html = '';
     foreach ($shares as $s) {
-        $preview = mb_substr($s['content'], 0, 30) ?: '<em>Empty</em>';
+        $preview = mb_substr(sanitize($s['content']), 0, 30) ?: '<em>Empty</em>';
         $status = $s['view_count'] >= $s['max_views'] ? '<span style="color:#e53935">Exhausted</span>' :
             ($s['expires_at'] && strtotime($s['expires_at']) < time() ? '<span style="color:#e53935">Expired</span>' : '<span style="color:#4caf50">Active</span>');
         $expires = $s['expires_at'] ? date('Y-m-d H:i', strtotime($s['expires_at'])) : 'Never';
@@ -823,7 +823,7 @@ if ($action === 'logs' && $is_logged_in) {
     $logs_html = '';
     foreach ($logs as $l) {
         $time = date('Y-m-d H:i:s', strtotime($l['accessed_at']));
-        $ua = mb_substr($l['user_agent'], 0, 60) ?: 'Unknown';
+        $ua = mb_substr(sanitize($l['user_agent']), 0, 60) ?: 'Unknown';
         $logs_html .= "<tr><td style=\"font-family:monospace\">{$l['share_token']}</td><td style=\"font-family:monospace\">" . mask_ip($l['ip_address']) . "</td><td style=\"font-size:12px\">{$ua}</td><td style=\"font-size:12px\">{$time}</td></tr>";
     }
 
