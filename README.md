@@ -60,6 +60,10 @@ rmdir /root/data/docker_data/mininotepad/minimalist-web-notepad
 编辑 `config.yaml`，**必须修改默认密码**：
 
 ```yaml
+vim config.yaml
+```
+
+```yaml
 admin:
   username: admin
   # 生成你自己的 bcrypt 密码：https://bcrypt-generator.com/
