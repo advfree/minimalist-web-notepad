@@ -712,7 +712,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script src=\"https://cdn.jsdelivr.net/npm/marked/marked.min.js\"><\/script>
 <script>
-const SLUG='{$note[\'slug\']}',CSRF='{$csrf_token}',LOGIN={$is_logged_in?'true':'false'},BASE=location.origin+location.pathname.split('?')[0];
+const SLUG='{$note['slug']}',CSRF='{$csrf_token}',LOGIN={$is_logged_in?'true':'false'},BASE=location.origin+location.pathname.split('?')[0];
 let C='',R=document.getElementById('editor').value,PL=true,SV=false,LT=null,SSO=false;
 const ed=document.getElementById('editor'),ln=document.getElementById('lines'),sst=document.getElementById('ss'),stt=document.getElementById('st');
 
