@@ -176,7 +176,7 @@ session_set_cookie_params([
     'path' => '/',
     'secure' => $use_secure,
     'httponly' => true,
-    'samesite' => 'Strict'
+    'samesite' => 'Lax'
 ]);
 session_start();
 
