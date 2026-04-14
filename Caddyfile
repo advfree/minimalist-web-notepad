@@ -19,12 +19,9 @@
     root * /var/www/html
     encode gzip
 
-    # PHP 请求转发给 FastCGI（PHP-FPM）
-    # 把外部反代传来的 X-Forwarded-Proto 透传给 PHP-FPM
-    php_fastcgi localhost:9000 {
-        env HTTPS {header.X-Forwarded-Proto}
-        trusted_proxies private_ranges
-    }
+    # PHP 文件走 FastCGI（必须单独匹配，避免被 try_files 当静态文件返回）
+    @php_files path *.php
+    php_fastcgi @php_files localhost:9000
 
     # 静态文件长期缓存
     @static {
