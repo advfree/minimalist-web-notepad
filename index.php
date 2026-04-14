@@ -572,13 +572,14 @@ if (!empty($_GET['note'])) {
 
     $csrf_token = generate_csrf();
     $site_title = sanitize($app['site_title'] ?? '极简笔记');
+    $note_slug = $note['slug'] ?? '';
 
     echo "<!DOCTYPE html>
 <html lang=\"zh-CN\">
 <head>
 <meta charset=\"utf-8\">
 <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
-<title>{$note['slug']} - {$site_title}</title>
+<title>{$note_slug} - {$site_title}</title>
 <link rel=\"icon\" href=\"favicon.ico\" sizes=\"any\">
 <link rel=\"icon\" href=\"favicon.svg\" type=\"image/svg+xml\">
 <style>
@@ -712,7 +713,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script src=\"https://cdn.jsdelivr.net/npm/marked/marked.min.js\"><\/script>
 <script>
-const SLUG='{$note['slug']}',CSRF='{$csrf_token}',LOGIN={$is_logged_in?'true':'false'},BASE=location.origin+location.pathname.split('?')[0];
+const SLUG='{$note_slug}',CSRF='{$csrf_token}',LOGIN={$is_logged_in?'true':'false'},BASE=location.origin+location.pathname.split('?')[0];
 let C='',R=document.getElementById('editor').value,PL=true,SV=false,LT=null,SSO=false;
 const ed=document.getElementById('editor'),ln=document.getElementById('lines'),sst=document.getElementById('ss'),stt=document.getElementById('st');
 
