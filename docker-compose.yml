@@ -1,13 +1,11 @@
 services:
   app:
-    # 使用 GitHub Container Registry 预构建镜像（无需本地编译）
-    image: ghcr.io/advfree/minimalist-web-notepad:latest
-    container_name: minimalist-web-notepad
+    build: .
+    container_name: minimalist-web-notepad2
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "18183:8080"
     volumes:
-      # 数据和配置移到 Web 根目录之外，防止直接下载
       - ./data:/var/www/_data
       - ./config.yaml:/var/www/config.yaml:ro
     environment:
