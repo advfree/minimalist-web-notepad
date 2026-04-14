@@ -1,4 +1,0 @@
-if test "$GIT_AUTHOR_NAME" = "Liu Jun"; then
-    GIT_AUTHOR_NAME="Jake"
-    GIT_AUTHOR_EMAIL="jake@example.com"
-fi
