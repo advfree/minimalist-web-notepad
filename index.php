@@ -6,7 +6,7 @@
  */
 
 // ===== 加载配置 =====
-$config = yaml_parse_file('/var/www/config.yaml') ?: [];
+$config = parse_config_yaml('/var/www/config.yaml') ?: [];
 $admin = $config['admin'] ?? [];
 $security = $config['security'] ?? [];
 $app = $config['app'] ?? [];
@@ -1002,7 +1002,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </html>";
 
 // ===== YAML 解析函数 =====
-function yaml_parse_file($file) {
+function parse_config_yaml($file) {
     if (!file_exists($file)) return [];
     $result = [];
     $current_section = null;
