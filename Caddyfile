@@ -10,9 +10,12 @@
         output stdout
     }
     http_port 8080
+    # 禁用自动 HTTPS（Caddy 默认会给非 localhost 的域名申请 TLS 证书）
+    # 我们的场景：Nginx/frp 在外面做反代，这里只提供 HTTP
+    auto_https off
 }
 
-::8080 {
+:8080 {
     root * /var/www/html
     encode gzip
 
