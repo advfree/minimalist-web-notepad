@@ -5,6 +5,26 @@
  * 支持：SQLite 数据库、账号登录、一次性分享链接、访问日志
  */
 
+// ===== YAML 解析函数（必须在使用前定义）=====
+function parse_config_yaml($file) {
+    if (!file_exists($file)) return [];
+    $result = [];
+    $current_section = null;
+    $lines = file($file, FILE_IGNORE_NEW_LINES);
+    foreach ($lines as $line) {
+        $line = rtrim($line);
+        if (preg_match('/^(\w+):$/', $line, $m)) {
+            $current_section = $m[1];
+            if (!isset($result[$current_section])) $result[$current_section] = [];
+        } elseif (preg_match('/^\s+(\w+):\s*["\']?(.+?)["\']?\s*$/', $line, $m)) {
+            if ($current_section) {
+                $result[$current_section][$m[1]] = trim($m[2], '"\'');
+            }
+        }
+    }
+    return $result;
+}
+
 // ===== 加载配置 =====
 $config = parse_config_yaml('/var/www/config.yaml') ?: [];
 $admin = $config['admin'] ?? [];
@@ -1010,24 +1030,4 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 </body>
 </html>";
-
-// ===== YAML 解析函数 =====
-function parse_config_yaml($file) {
-    if (!file_exists($file)) return [];
-    $result = [];
-    $current_section = null;
-    $lines = file($file, FILE_IGNORE_NEW_LINES);
-    foreach ($lines as $line) {
-        $line = rtrim($line);
-        if (preg_match('/^(\w+):$/', $line, $m)) {
-            $current_section = $m[1];
-            if (!isset($result[$current_section])) $result[$current_section] = [];
-        } elseif (preg_match('/^\s+(\w+):\s*["\']?(.+?)["\']?\s*$/', $line, $m)) {
-            if ($current_section) {
-                $result[$current_section][$m[1]] = trim($m[2], '"\'');
-            }
-        }
-    }
-    return $result;
-}
 ?>
