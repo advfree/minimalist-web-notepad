@@ -17,7 +17,11 @@
     encode gzip
 
     # PHP 请求转发给 FastCGI（PHP-FPM）
-    php_fastcgi localhost:9000
+    # 把外部反代传来的 X-Forwarded-Proto 透传给 PHP-FPM
+    php_fastcgi localhost:9000 {
+        env HTTPS {header.X-Forwarded-Proto}
+        trusted_proxies private_ranges
+    }
 
     # 静态文件长期缓存
     @static {

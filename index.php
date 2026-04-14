@@ -163,11 +163,15 @@ function generate_csrf() {
 // ===== 会话管理 =====
 
 // Cookie 安全属性
-// 修复：secure标志应根据当前请求是否HTTPS动态设置
-// 在生产环境使用HTTPS时应设为true，开发/本地环境HTTP时应设为false
-$is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') 
-    || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
-    || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
+// 反代场景：Nginx传来X-Forwarded-Proto=https，Caddy通过env HTTPS透传给PHP-FPM
+// 容器内部是HTTP，不能依赖 $_SERVER['HTTPS']，优先信任 X-Forwarded-Proto
+$proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] 
+    ?? $_SERVER['HTTP_X_FORWARDED_PROTO'] 
+    ?? '';
+$is_https = ($proto === 'https')
+    || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (!empty($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
+// 允许config.yaml强制覆盖
 $force_secure = $security['force_secure_cookie'] ?? null;
 $use_secure = $force_secure !== null ? (bool)$force_secure : $is_https;
 
@@ -557,7 +561,7 @@ if (!empty($_GET['note'])) {
     // 严重安全修复：必须登录才能访问笔记页面
     if (!$is_logged_in) {
         http_response_code(403);
-        header('Location: ?error=login_required');
+        header('Location: ?action=login&error=login_required');
         exit;
     }
     
