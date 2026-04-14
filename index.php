@@ -712,9 +712,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 </div>
 
-<script src=\"https://cdn.jsdelivr.net/npm/marked/marked.min.js\"><\/script>
+</body>
+</html>";
+?><script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-const SLUG='{$note_slug}',CSRF='{$csrf_token}',LOGIN={$login_js},BASE=location.origin+location.pathname.split('?')[0];
+const SLUG='<?php echo $note_slug; ?>',CSRF='<?php echo $csrf_token; ?>',LOGIN=<?php echo $login_js; ?>,BASE=location.origin+location.pathname.split('?')[0];
 let C='',R=document.getElementById('editor').value,PL=true,SV=false,LT=null,SSO=false;
 const ed=document.getElementById('editor'),ln=document.getElementById('lines'),sst=document.getElementById('ss'),stt=document.getElementById('st');
 
@@ -774,9 +776,10 @@ ed.oninput=function(){updateLines();updateStats();;};
 ed.onscroll=function(){ln.scrollTop=ed.scrollTop;};
 ed.onkeydown=function(e){if(e.key==='Tab'){e.preventDefault();const s=ed.selectionStart,en=ed.selectionEnd;ed.value=ed.value.substring(0,s)+'    '+ed.value.substring(en);ed.selectionStart=ed.selectionEnd=s+4;updateLines();}};
 updateLines();updateStats();
-<\/script>
+</script>
 </body>
-</html>";
+</html>
+<?php
     exit;
 }
 
@@ -856,14 +859,16 @@ th{background:var(--lb);font-size:12px;text-transform:uppercase;color:var(--sc)}
 </table>
 </div>
 </div>
-<script>
-function tt(){const c=document.documentElement.getAttribute('data-theme')||'light',n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}
-const t=localStorage.getItem('theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');
-<\/script>
 </body>
 </html>";
+?>
+<?php
     exit;
 }
+?><script>
+function tt(){const c=document.documentElement.getAttribute('data-theme')||'light',n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);}
+const t=localStorage.getItem('theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');
+</script>
 
 // ===== 分享管理 =====
 if ($action === 'shares' && $is_logged_in) {
@@ -910,17 +915,18 @@ code{background:var(--lb);padding:2px 6px;border-radius:4px;font-size:12px}
 <tbody>{$shares_html}</tbody>
 </table>
 </div></div>
-<script>
-const CSRF='{$csrf_token}',BASE=location.origin+location.pathname;
+</body>
+</html>";
+hp
+    exit;
+}
+?><script>
+const CSRF='<?php echo $csrf_token; ?>',BASE=location.origin+location.pathname;
 async function ds(id){if(!confirm('Delete share link?'))return;
 await fetch('?action=api_delete_share',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({id,csrf_token:CSRF})});
 location.reload();}
 function cp(t){navigator.clipboard.writeText(BASE+'?share='+t).then(()=>alert('Copied!'));}
-<\/script>
-</body>
-</html>";
-    exit;
-}
+</script>
 
 // ===== 访问日志 =====
 if ($action === 'logs' && $is_logged_in) {
