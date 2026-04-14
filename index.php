@@ -165,9 +165,7 @@ function generate_csrf() {
 // Cookie 安全属性
 // 反代场景：Nginx传来X-Forwarded-Proto=https，Caddy通过env HTTPS透传给PHP-FPM
 // 容器内部是HTTP，不能依赖 $_SERVER['HTTPS']，优先信任 X-Forwarded-Proto
-$proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] 
-    ?? $_SERVER['HTTP_X_FORWARDED_PROTO'] 
-    ?? '';
+$proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
 $is_https = ($proto === 'https')
     || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || (!empty($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
