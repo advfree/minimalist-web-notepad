@@ -12,23 +12,12 @@
     http_port 8080
 }
 
-:8080 {
+::8080 {
     root * /var/www/html
     encode gzip
 
     # PHP 请求转发给 FastCGI（PHP-FPM）
     php_fastcgi localhost:9000
-
-    # 安全：禁止访问数据目录
-    @denied {
-        path /_data/*
-        path /config.yaml
-        path /*.sqlite
-        path /*.db
-    }
-    handle @denied {
-        respond 404
-    }
 
     # 静态文件长期缓存
     @static {

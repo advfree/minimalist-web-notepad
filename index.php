@@ -6,7 +6,7 @@
  */
 
 // ===== 加载配置 =====
-$config = yaml_parse_file('config.yaml') ?: [];
+$config = yaml_parse_file('/var/www/config.yaml') ?: [];
 $admin = $config['admin'] ?? [];
 $security = $config['security'] ?? [];
 $app = $config['app'] ?? [];
@@ -17,13 +17,15 @@ $MAX_FAILED = (int)($security['max_failed_attempts'] ?? 5);
 $LOCKOUT_DURATION = (int)($security['lockout_duration'] ?? 15);
 
 // ===== 数据库初始化 =====
-$db_file = '_data/notes.db';
-$data_dir = '_data';
+$db_file = '/var/www/_data/notes.db';
+$data_dir = '/var/www/_data';
 if (!is_dir($data_dir)) mkdir($data_dir, 0700, true);
 
 $pdo = new PDO("sqlite:$db_file");
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->exec("PRAGMA journal_mode=WAL");
+// 严重安全修复：SQLite外键约束默认关闭，必须显式开启
+$pdo->exec("PRAGMA foreign_keys = ON");
 
 // 创建表
 $pdo->exec("
@@ -80,13 +82,22 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 ");
 
-// ===== 自动创建管理员账号 =====
-$admin_username = $admin['username'] ?? 'admin';
-$admin_hash = $admin['password_hash'] ?? '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
-$stmt->execute([$admin_username]);
+// ===== 管理员账号验证 =====
+// 严重安全修复：禁止使用硬编码默认凭据
+// 必须从config.yaml配置中获取管理员账号
+$admin_username = $admin['username'] ?? null;
+$admin_hash = $admin['password_hash'] ?? null;
+
+// 如果配置文件中未指定管理员，拒绝启动
+if (empty($admin_username) || empty($admin_hash)) {
+    http_response_code(500);
+    die('配置错误：未在config.yaml中设置管理员账号（admin.username 和 admin.password_hash）');
+}
+
+// 如果users表为空，使用配置中的账号创建
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM users");
+$stmt->execute();
 if ($stmt->fetchColumn() == 0) {
-    // 首次运行，自动创建管理员
     $stmt = $pdo->prepare("INSERT INTO users (username, password_hash) VALUES (?, ?)");
     $stmt->execute([$admin_username, $admin_hash]);
 }
@@ -152,21 +163,37 @@ function generate_csrf() {
 // ===== 会话管理 =====
 
 // Cookie 安全属性
+// 修复：secure标志应根据当前请求是否HTTPS动态设置
+// 在生产环境使用HTTPS时应设为true，开发/本地环境HTTP时应设为false
+$is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') 
+    || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+    || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
+$force_secure = $security['force_secure_cookie'] ?? null;
+$use_secure = $force_secure !== null ? (bool)$force_secure : $is_https;
+
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
-    'secure' => true,
+    'secure' => $use_secure,
     'httponly' => true,
     'samesite' => 'Strict'
 ]);
 session_start();
 
-// 获取真实 IP（支持代理）
-$ip = $_SERVER['HTTP_X_FORWARDED_FOR'] 
-    ?? $_SERVER['HTTP_X_REAL_IP'] 
-    ?? $_SERVER['REMOTE_ADDR'] 
-    ?? '0.0.0.0';
-$ip = filter_var(explode(',', $ip)[0], FILTER_VALIDATE_IP) ?: '0.0.0.0';
+// 获取真实 IP
+// 严重安全修复：默认只信任 REMOTE_ADDR，禁用对 X-Forwarded-For 的信任
+// 如果应用前面有可信的反向代理（如Caddy），代理会在请求头中设置真实IP
+// 但攻击者可以伪造这些头，所以不能直接信任客户端传入的值
+// 只有在反向代理正确配置（不转发不可信来源）时才考虑使用代理头
+$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+// 如果需要支持可信代理，可在config.yaml中配置 trusted_proxies
+$trusted_proxies = $security['trusted_proxies'] ?? [];
+if (!empty($trusted_proxies) && in_array($ip, $trusted_proxies)) {
+    $forwarded_ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_X_REAL_IP'] ?? null;
+    if ($forwarded_ip) {
+        $ip = filter_var(explode(',', $forwarded_ip)[0], FILTER_VALIDATE_IP) ?: $ip;
+    }
+}
 $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
 // 清理过期会话
@@ -241,6 +268,53 @@ if ($action === 'logout') {
     $stmt->execute([session_id()]);
     session_destroy();
     header('Location: ?');
+    exit;
+}
+
+// 登录页面（GET请求）
+if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    if ($is_logged_in) {
+        header('Location: ?');
+        exit;
+    }
+    $csrf_token = generate_csrf();
+    $site_title = sanitize($app['site_title'] ?? '极简笔记');
+    $error = $_GET['error'] ?? '';
+    $error_msg = $error === 'login_required' ? '请先登录' : '';
+    
+    echo "<!DOCTYPE html>
+<html lang=\"zh-CN\">
+<head>
+<meta charset=\"utf-8\">
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+<title>登录 - {$site_title}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.login-box{background:#fff;border-radius:16px;padding:40px;width:360px;box-shadow:0 8px 32px rgba(0,0,0,.1)}
+.login-box h1{font-size:24px;margin-bottom:24px;text-align:center;color:#4a90d9}
+.login-box input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:12px;box-sizing:border-box}
+.login-box button{width:100%;padding:12px;border:none;border-radius:8px;background:#4a90d9;color:#fff;font-size:15px;cursor:pointer;margin-top:8px}
+.login-box button:hover{background:#357abd}
+.err{color:#e53935;font-size:13px;margin-top:8px;text-align:center;padding:8px;background:#ffebee;border-radius:4px;display:" . ($error_msg ? 'block' : 'none') . "}
+.back{text-align:center;margin-top:16px}
+.back a{color:#4a90d9;text-decoration:none;font-size:13px}
+</style>
+</head>
+<body>
+<div class=\"login-box\">
+<h1>🔐 登录</h1>
+<form action=\"?action=login\" method=\"POST\">
+<input type=\"text\" name=\"username\" placeholder=\"用户名\" required autocomplete=\"username\">
+<input type=\"password\" name=\"password\" placeholder=\"密码\" required autocomplete=\"current-password\">
+<input type=\"hidden\" name=\"csrf_token\" value=\"{$csrf_token}\">
+<button type=\"submit\">登录</button>
+</form>
+<div class=\"err\">{$error_msg}</div>
+<div class=\"back\"><a href=\"?\">← 返回首页</a></div>
+</div>
+</body>
+</html>";
     exit;
 }
 
@@ -480,6 +554,13 @@ if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
 // ===== 笔记编辑页面 =====
 
 if (!empty($_GET['note'])) {
+    // 严重安全修复：必须登录才能访问笔记页面
+    if (!$is_logged_in) {
+        http_response_code(403);
+        header('Location: ?error=login_required');
+        exit;
+    }
+    
     $slug = $_GET['note'];
     $stmt = $pdo->prepare("SELECT id, slug, content, created_at, updated_at FROM notes WHERE slug = ?");
     $stmt->execute([$slug]);
@@ -622,14 +703,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <button onclick=\"showNotes()\" style=\"padding:8px 12px;border:1px solid var(--bd);border-radius:6px;background:var(--tbg);color:var(--tc);cursor:pointer\">刷新</button>
 </div>
 <div id=\"nlist\"></div>
-<div class=\"modal-btns\"><button onclick=\"closeLMo()\"
+<div class=\"modal-btns\"><button onclick='closeLMo()'
  style=\"padding:8px 16px;border:1px solid var(--bd);border-radius:6px;background:var(--tb);color:var(--tc);cursor:pointer\">关闭</button></div>
 </div>
 </div>
 
 <script src=\"https://cdn.jsdelivr.net/npm/marked/marked.min.js\"><\/script>
 <script>
-const SLUG='{$note['slug']}',CSRF='{$csrf_token}',LOGIN={$is_logged_in?'true':'false'},BASE=location.origin+location.pathname.split('?')[0];
+const SLUG='{$note[\'slug\']}',CSRF='{$csrf_token}',LOGIN={$is_logged_in?'true':'false'},BASE=location.origin+location.pathname.split('?')[0];
 let C='',R=document.getElementById('editor').value,PL=true,SV=false,LT=null,SSO=false;
 const ed=document.getElementById('editor'),ln=document.getElementById('lines'),sst=document.getElementById('ss'),stt=document.getElementById('st');
 

@@ -23,8 +23,8 @@ WORKDIR /var/www/html
 # 复制应用文件
 COPY . .
 
-# 创建数据目录
-RUN mkdir -p /var/www/html/_data && chmod 777 /var/www/html/_data
+# 创建数据目录（Web根之外，安全存储）
+RUN mkdir -p /var/www/_data && chmod 777 /var/www/_data
 
 # 使用 supervisord 管理 PHP-FPM 和 Caddy 双进程
 RUN apt-get update && apt-get install -y --no-install-recommends supervisor \

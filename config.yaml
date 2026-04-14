@@ -2,12 +2,11 @@
 # 请修改以下配置后重启服务
 
 # ===== 管理员账号密码 =====
-# 用户名（默认 admin）
+# 重要：必须配置管理员账号，否则服务将拒绝启动
 # 密码请使用 bcrypt 加密，可在线生成：https://bcrypt-generator.com/
-# 默认密码：admin123 （请务必修改！）
 admin:
   username: admin
-  # bcrypt 加密后的密码
+  # bcrypt 加密后的密码（示例密码：password123，请修改！）
   password_hash: "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"
 
 # ===== 安全设置 =====
@@ -18,6 +17,12 @@ security:
   max_failed_attempts: 5
   # 锁定时间（分钟）
   lockout_duration: 15
+  # 是否强制使用安全 Cookie（仅 HTTPS 环境设为 true）
+  # force_secure_cookie: true
+  # 可信代理 IP 列表（仅在反向代理后面时配置）
+  # trusted_proxies:
+  #   - "127.0.0.1"
+  #   - "10.0.0.1"
 
 # ===== 应用设置 =====
 app:

@@ -7,7 +7,9 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./data:/var/www/html/_data
+      # 数据和配置移到 Web 根目录之外，防止直接下载
+      - ./data:/var/www/_data
+      - ./config.yaml:/var/www/config.yaml:ro
     environment:
       - TZ=Asia/Shanghai
     healthcheck:

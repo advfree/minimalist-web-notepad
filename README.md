@@ -87,7 +87,7 @@ docker compose up -d
 | `container_name` | 容器名，唯一标识，不可与其他容器重复 |
 | `restart` | 重启策略：`unless-stopped`（开机自启，推荐）/ `always`（始终重启）/ `no`（不自动重启） |
 | `ports` | `"宿主机端口:容器端口"`，左侧是本机端口，右侧是容器内端口。改左侧数字可避开端口冲突，如 `"8081:8080"` |
-| `volumes` | 数据持久化：左侧 `./data` 是本机目录（需自行 mkdir），右侧 `/var/www/html/_data` 是容器内数据目录（勿改） |
+| `volumes` | 数据持久化：左侧 `./data` 是本机目录，右侧 `/var/www/_data` 是容器内数据目录（Web根之外） |
 | `environment` | 环境变量，`TZ=Asia/Shanghai` 为北京时间 |
 | `healthcheck` | 健康检查，curl 访问首页确认容器运行正常 |
 
@@ -112,11 +112,11 @@ docker compose up -d --build
 ```
 minimalist-web-notepad/
 ├── index.php              # 主程序（单文件，PHP 8.2+）
-├── config.yaml            # 用户配置文件（账号密码、安全设置）
+├── config.yaml            # 用户配置文件（账号密码、安全设置，容器内挂载到 /var/www/config.yaml）
 ├── docker-compose.yml     # Docker Compose 配置
 ├── Caddyfile              # Caddy 反向代理配置（HTTP 端口 8080）
 ├── Dockerfile             # Docker 镜像配置（Caddy + PHP-FPM）
-├── data/                  # 数据目录（需手动创建，SQLite 数据库自动生成）
+├── data/                  # 数据目录（容器内挂载到 /var/www/_data，Web根之外）
 ├── README.md
 └── LICENSE
 ```
@@ -190,7 +190,7 @@ Caddyfile 默认使用 HTTP 端口 8080，由外部反向代理（如 frp、Cadd
 
 ## 安全说明
 
-- 数据库文件存储在 `_data/` 目录，确保 Web 服务器配置禁止直接访问
+- 数据库和配置文件存储在 Web 根目录之外（`/var/www/_data`、`/var/www/config.yaml`），即使 Web 服务器配置失误也不会被直接下载
 - 分享 Token 使用 `random_bytes()` 生成，无法预测
 - 所有用户输入经过 HTML 转义，防止 XSS
 - 使用 PDO 预处理语句，防止 SQL 注入
