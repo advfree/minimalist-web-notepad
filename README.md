@@ -55,8 +55,9 @@ cd /root/data/docker_data/mininotepad
 # 下载 docker-compose.yml
 curl -O https://raw.githubusercontent.com/advfree/minimalist-web-notepad/master/docker-compose.yml
 
-# 下载 config.yaml
-curl -o config.yaml https://raw.githubusercontent.com/advfree/minimalist-web-notepad/master/config.yaml
+# 下载不含凭据的配置模板，并生成本地配置
+curl -o config.example.yaml https://raw.githubusercontent.com/advfree/minimalist-web-notepad/master/config.example.yaml
+cp config.example.yaml config.yaml
 ```
 
 ### 3. 修改配置文件
@@ -101,6 +102,7 @@ docker compose up -d
 git clone https://github.com/advfree/minimalist-web-notepad.git
 cd minimalist-web-notepad
 mkdir data && chmod 777 data
+cp config.example.yaml config.yaml
 vim config.yaml  # 修改密码
 docker compose up -d --build
 ```
@@ -112,7 +114,8 @@ docker compose up -d --build
 ```
 minimalist-web-notepad/
 ├── index.php              # 主程序（单文件，PHP 8.2+）
-├── config.yaml            # 用户配置文件（账号密码、安全设置，容器内挂载到 /var/www/config.yaml）
+├── config.example.yaml    # 不含凭据的配置模板
+├── config.yaml            # 本地用户配置（Git 忽略，容器内挂载到 /var/www/config.yaml）
 ├── docker-compose.yml     # Docker Compose 配置
 ├── Caddyfile              # Caddy 反向代理配置（HTTP 端口 8080）
 ├── Dockerfile             # Docker 镜像配置（Caddy + PHP-FPM）
